@@ -1,5 +1,14 @@
-
 export type Role = 'SUPER_ADMIN' | 'MARKET_ADMIN' | 'COUNTER_STAFF' | 'VENDOR' | 'SUPPLIER' | 'USER';
+
+export interface UserSettings {
+  lowStockThreshold: number;
+  criticalStockThreshold: number;
+  notifications: {
+    email: boolean;
+    browser: boolean;
+    sms: boolean;
+  };
+}
 
 export interface UserProfile {
   id: string;
@@ -11,6 +20,7 @@ export interface UserProfile {
   mfaEnabled: boolean;
   profileImage?: string;
   appliedRole?: Role;
+  settings?: UserSettings;
 }
 
 export interface Vendor {

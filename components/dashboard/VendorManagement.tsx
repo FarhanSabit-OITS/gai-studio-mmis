@@ -41,6 +41,15 @@ export const VendorManagement = ({ user }: VendorManagementProps) => {
   const [showFilters, setShowFilters] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Helper to determine status based on user thresholds
+  const determineProductStatus = (stock: number): Product['status'] => {
+    const low = user?.settings?.lowStockThreshold ?? 10;
+    const critical = user?.settings?.criticalStockThreshold ?? 5;
+    if (stock <= critical) return 'CRITICAL';
+    if (stock <= low) return 'LOW';
+    return 'HEALTHY';
+  };
+
   // --- Product Management State ---
   const [products, setProducts] = useState<Product[]>([
     { id: 'P-001', name: 'Fresh Organic Tomatoes', description: 'Sun-ripened, organic tomatoes from local farms.', vendor: user?.name || 'My Store', stock: 120, price: 5000, status: 'HEALTHY', category: 'Produce' },
@@ -83,13 +92,14 @@ export const VendorManagement = ({ user }: VendorManagementProps) => {
     setLoading(true);
     await new Promise(r => setTimeout(r, 1000));
     
+    const stockNum = Number(productForm.stock);
     const newProductData = {
       name: productForm.name,
       description: productForm.description,
       price: Number(productForm.price),
-      stock: Number(productForm.stock),
+      stock: stockNum,
       category: productForm.category,
-      status: (Number(productForm.stock) === 0 ? 'CRITICAL' : Number(productForm.stock) < 10 ? 'LOW' : 'HEALTHY') as Product['status']
+      status: determineProductStatus(stockNum)
     };
 
     if (editingProduct) {
@@ -212,11 +222,12 @@ export const VendorManagement = ({ user }: VendorManagementProps) => {
   const productStats = useMemo(() => {
     return {
       total: products.length,
-      low: products.filter(p => p.status === 'LOW').length,
-      out: products.filter(p => p.status === 'CRITICAL').length,
+      // Recalculate counts based on current dynamic thresholds for the dashboard stats
+      low: products.filter(p => determineProductStatus(p.stock) === 'LOW').length,
+      out: products.filter(p => determineProductStatus(p.stock) === 'CRITICAL').length,
       value: products.reduce((acc, p) => acc + (p.price * p.stock), 0)
     };
-  }, [products]);
+  }, [products, user?.settings]); // Also watch user.settings for threshold changes
 
   const SortIcon = ({ column }: { column: keyof Vendor }) => {
     if (sortConfig?.key !== column) return <ChevronDown size={14} className="opacity-20" />;
@@ -472,9 +483,8 @@ export const VendorManagement = ({ user }: VendorManagementProps) => {
         </div>
       )}
 
-      {/* --- Other Tabs logic remains same --- */}
+      {/* --- Tab Content: My Products View --- */}
       {activeTab === 'MY_PRODUCTS' && isVendor && (
-        /* ... existing MY_PRODUCTS content ... */
         <div className="space-y-8 animate-fade-in pb-20">
            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card className="bg-slate-900 text-white border-none shadow-2xl p-6 group">
@@ -535,43 +545,46 @@ export const VendorManagement = ({ user }: VendorManagementProps) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {products.filter(p => p.name.toLowerCase().includes(search.toLowerCase())).map((p) => (
-                      <tr key={p.id} className="group hover:bg-slate-50/80 transition-all">
-                        <td className="px-8 py-6">
-                          <div className="flex items-center gap-5">
-                             <div className="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg group-hover:bg-indigo-600 transition-all"><Package size={24} /></div>
-                             <div className="min-w-0">
-                                <span className="text-sm font-black text-slate-900 block truncate tracking-tight">{p.name}</span>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className="text-[9px] font-black bg-slate-200/50 text-slate-500 px-2 py-0.5 rounded-full uppercase tracking-widest">{p.id}</span>
-                                  <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">{p.category}</span>
-                                </div>
+                    {products.filter(p => p.name.toLowerCase().includes(search.toLowerCase())).map((p) => {
+                      const currentStatus = determineProductStatus(p.stock);
+                      return (
+                        <tr key={p.id} className="group hover:bg-slate-50/80 transition-all">
+                          <td className="px-8 py-6">
+                            <div className="flex items-center gap-5">
+                               <div className="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg group-hover:bg-indigo-600 transition-all"><Package size={24} /></div>
+                               <div className="min-w-0">
+                                  <span className="text-sm font-black text-slate-900 block truncate tracking-tight">{p.name}</span>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-[9px] font-black bg-slate-200/50 text-slate-500 px-2 py-0.5 rounded-full uppercase tracking-widest">{p.id}</span>
+                                    <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">{p.category}</span>
+                                  </div>
+                               </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-6">
+                            <div className="flex flex-col gap-2">
+                               <span className={`text-sm font-black ${p.stock === 0 ? 'text-red-500' : 'text-slate-800'}`}>{p.stock.toLocaleString()} Units</span>
+                               <div className="w-28 h-2 rounded-full bg-slate-100 overflow-hidden shadow-inner">
+                                  <div className={`h-full transition-all duration-700 ${currentStatus === 'HEALTHY' ? 'bg-emerald-500' : currentStatus === 'LOW' ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${Math.min((p.stock / 200) * 100, 100)}%` }} />
+                               </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-6"><p className="text-sm font-black text-slate-900 tracking-tighter">UGX {p.price.toLocaleString()}</p></td>
+                          <td className="px-8 py-6">
+                             <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm ${currentStatus === 'HEALTHY' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : currentStatus === 'LOW' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                               <div className={`w-1.5 h-1.5 rounded-full ${currentStatus === 'HEALTHY' ? 'bg-emerald-500' : currentStatus === 'LOW' ? 'bg-amber-500' : 'bg-red-500 animate-pulse'}`} /> {currentStatus}
                              </div>
-                          </div>
-                        </td>
-                        <td className="px-8 py-6">
-                          <div className="flex flex-col gap-2">
-                             <span className={`text-sm font-black ${p.stock === 0 ? 'text-red-500' : 'text-slate-800'}`}>{p.stock.toLocaleString()} Units</span>
-                             <div className="w-28 h-2 rounded-full bg-slate-100 overflow-hidden shadow-inner">
-                                <div className={`h-full transition-all duration-700 ${p.status === 'HEALTHY' ? 'bg-emerald-500' : p.status === 'LOW' ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${Math.min((p.stock / 200) * 100, 100)}%` }} />
+                          </td>
+                          <td className="px-8 py-6 text-right">
+                             <div className="flex justify-end gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => handleDuplicate(p)} className="p-3 hover:bg-slate-200 rounded-xl text-slate-500 transition-all hover:scale-110" title="Duplicate Listing"><Copy size={18} /></button>
+                                <button onClick={() => handleOpenEditProduct(p)} className="p-3 hover:bg-indigo-50 rounded-xl text-indigo-600 transition-all hover:scale-110 shadow-sm" title="Edit Identity"><Edit size={18} /></button>
+                                <button onClick={() => setShowDeleteConfirm(p.id)} className="p-3 hover:bg-red-50 rounded-xl text-red-500 transition-all hover:scale-110 shadow-sm" title="Purge Item"><Trash2 size={18} /></button>
                              </div>
-                          </div>
-                        </td>
-                        <td className="px-8 py-6"><p className="text-sm font-black text-slate-900 tracking-tighter">UGX {p.price.toLocaleString()}</p></td>
-                        <td className="px-8 py-6">
-                           <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm ${p.status === 'HEALTHY' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : p.status === 'LOW' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
-                             <div className={`w-1.5 h-1.5 rounded-full ${p.status === 'HEALTHY' ? 'bg-emerald-500' : p.status === 'LOW' ? 'bg-amber-500' : 'bg-red-500 animate-pulse'}`} /> {p.status}
-                           </div>
-                        </td>
-                        <td className="px-8 py-6 text-right">
-                           <div className="flex justify-end gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
-                              <button onClick={() => handleDuplicate(p)} className="p-3 hover:bg-slate-200 rounded-xl text-slate-500 transition-all hover:scale-110" title="Duplicate Listing"><Copy size={18} /></button>
-                              <button onClick={() => handleOpenEditProduct(p)} className="p-3 hover:bg-indigo-50 rounded-xl text-indigo-600 transition-all hover:scale-110 shadow-sm" title="Edit Identity"><Edit size={18} /></button>
-                              <button onClick={() => setShowDeleteConfirm(p.id)} className="p-3 hover:bg-red-50 rounded-xl text-red-500 transition-all hover:scale-110 shadow-sm" title="Purge Item"><Trash2 size={18} /></button>
-                           </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

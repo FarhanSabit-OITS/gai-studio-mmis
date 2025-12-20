@@ -4,7 +4,8 @@ import React from 'react';
 interface ButtonProps {
   // Fixed: Made children optional to resolve TS errors in various components
   children?: React.ReactNode;
-  onClick?: () => void;
+  // Fixed: Allow onClick to receive a MouseEvent to fix type mismatch in InventoryManagement and other components
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   className?: string;
   loading?: boolean;
