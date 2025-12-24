@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface ButtonProps {
@@ -11,6 +10,8 @@ interface ButtonProps {
   loading?: boolean;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
+  // Added: support for native title attribute for tooltips
+  title?: string;
 }
 
 export const Button = ({ 
@@ -20,7 +21,8 @@ export const Button = ({
   className = '', 
   loading = false, 
   disabled = false,
-  type = 'button'
+  type = 'button',
+  title
 }: ButtonProps) => {
   const variants = {
     primary: 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md',
@@ -34,6 +36,7 @@ export const Button = ({
       type={type}
       disabled={disabled || loading}
       onClick={onClick}
+      title={title}
       className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${variants[variant]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : children}

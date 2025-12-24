@@ -12,12 +12,13 @@ export const TransactionHistory = ({ user }: { user: UserProfile }) => {
   const [amountRange, setAmountRange] = useState({ min: '', max: '' });
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
+  /* Fix: Corrected transaction method values to match the 'MTN_MOMO' | 'AIRTEL_MONEY' | 'BANK' | 'CASH' | 'CARD' enum */
   const [transactions] = useState<Transaction[]>([
-    { id: 'TX-101', date: '2024-05-15 14:30', amount: 250000, type: 'RENT', status: 'SUCCESS', method: 'Mobile Money' },
-    { id: 'TX-102', date: '2024-05-14 09:15', amount: 5000, type: 'SERVICE_CHARGE', status: 'SUCCESS', method: 'Cash' },
-    { id: 'TX-103', date: '2024-05-12 11:20', amount: 1200000, type: 'WITHDRAWAL', status: 'PENDING', method: 'Bank Transfer' },
-    { id: 'TX-104', date: '2024-05-10 16:45', amount: 450000, type: 'LICENSE', status: 'FAILED', method: 'Card' },
-    { id: 'TX-105', date: '2024-05-08 10:00', amount: 30000, type: 'SERVICE_CHARGE', status: 'SUCCESS', method: 'Mobile Money' },
+    { id: 'TX-101', date: '2024-05-15 14:30', amount: 250000, type: 'RENT', status: 'SUCCESS', method: 'MTN_MOMO' },
+    { id: 'TX-102', date: '2024-05-14 09:15', amount: 5000, type: 'SERVICE_CHARGE', status: 'SUCCESS', method: 'CASH' },
+    { id: 'TX-103', date: '2024-05-12 11:20', amount: 1200000, type: 'WITHDRAWAL', status: 'PENDING', method: 'BANK' },
+    { id: 'TX-104', date: '2024-05-10 16:45', amount: 450000, type: 'LICENSE', status: 'FAILED', method: 'CARD' },
+    { id: 'TX-105', date: '2024-05-08 10:00', amount: 30000, type: 'SERVICE_CHARGE', status: 'SUCCESS', method: 'MTN_MOMO' },
   ]);
 
   const filteredTransactions = useMemo(() => {

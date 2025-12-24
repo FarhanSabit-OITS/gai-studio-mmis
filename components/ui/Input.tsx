@@ -13,20 +13,18 @@ interface InputProps {
   disabled?: boolean;
   multiline?: boolean;
   required?: boolean;
-  // Added className to props interface
   className?: string;
 }
 
-// Fixed: Added name property to Input component to allow uncontrolled form access
 export const Input = ({ label, name, type = 'text', placeholder, icon: Icon, value, onChange, disabled, multiline, required, className = '' }: InputProps) => (
   <div className={`mb-4 ${className}`}>
     {label && (
-      <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2 px-1">
-        {label}
+      <label className="block text-sm font-black text-slate-800 uppercase tracking-widest mb-2 px-1">
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
     )}
     <div className="relative group">
-      {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 z-10 transition-colors group-focus-within:text-indigo-400" />}
+      {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 z-10 transition-colors group-focus-within:text-indigo-400" />}
       {multiline ? (
         <textarea
           name={name}
@@ -36,7 +34,7 @@ export const Input = ({ label, name, type = 'text', placeholder, icon: Icon, val
           placeholder={placeholder}
           required={required}
           rows={4}
-          className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3.5 bg-black text-white border-2 border-slate-800 rounded-2xl focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all outline-none placeholder:text-slate-600 text-sm font-bold disabled:opacity-50 resize-none shadow-xl`}
+          className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-4 bg-black text-white border-2 border-slate-800 rounded-2xl focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all outline-none placeholder:text-slate-500 text-sm font-bold disabled:opacity-50 resize-none shadow-xl`}
         />
       ) : (
         <input
@@ -47,7 +45,7 @@ export const Input = ({ label, name, type = 'text', placeholder, icon: Icon, val
           disabled={disabled}
           placeholder={placeholder}
           required={required}
-          className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3.5 bg-black text-white border-2 border-slate-800 rounded-2xl focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all outline-none placeholder:text-slate-600 text-sm font-bold disabled:opacity-50 shadow-xl`}
+          className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-4 bg-black text-white border-2 border-slate-800 rounded-2xl focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all outline-none placeholder:text-slate-500 text-sm font-bold disabled:opacity-50 shadow-xl`}
         />
       )}
     </div>

@@ -12,11 +12,10 @@ import { GoogleGenAI } from '@google/genai';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
-import { Ticket, UserProfile, Role } from '../../types';
+import { Ticket, UserProfile } from '../../types';
 
 export const TicketingSystem = ({ user }: { user: UserProfile }) => {
   const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'MARKET_ADMIN';
-  const isSecurity = user.role === 'COUNTER_STAFF' || user.role === 'USER'; // Simulated field role
   
   const [tickets, setTickets] = useState<Ticket[]>([
     { id: 'TIC-1022', title: 'CCTV Blindspot - Wing B', description: 'The camera at Wing B, Stall 12 is facing down and not recording the aisle.', context: 'ASSET', priority: 'HIGH', status: 'IN_PROGRESS', creatorId: 'U-001', creatorName: 'Mukasa (Security)', createdAt: '2024-05-18 10:30', assetType: 'CCTV', assignedToId: 'ADM-01', assignedToName: 'James Mukasa (Admin)', attachmentUrl: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=400' },
@@ -37,7 +36,7 @@ export const TicketingSystem = ({ user }: { user: UserProfile }) => {
     description: '',
     context: 'SUPPORT' as Ticket['context'],
     priority: 'MEDIUM' as Ticket['priority'],
-    assetType: 'GENERAL' as Ticket['assetType']
+    assetType: 'GENERAL'
   });
 
   const handleImageCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,7 +59,6 @@ export const TicketingSystem = ({ user }: { user: UserProfile }) => {
       creatorId: user.id,
       creatorName: user.name,
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      assetType: form.context === 'ASSET' ? form.assetType : undefined,
       attachmentUrl: capturedImage || undefined
     };
     setTickets([newTicket, ...tickets]);
@@ -101,12 +99,11 @@ export const TicketingSystem = ({ user }: { user: UserProfile }) => {
            </div>
            <div>
               <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase">Case Registry</h2>
-              <p className="text-slate-500 font-medium text-lg hidden sm:block">Field Maintenance & User Complaints Hub</p>
-              <p className="text-slate-500 font-bold text-xs uppercase tracking-widest sm:hidden">Field Maintenance Terminal</p>
+              <p className="text-slate-50 font-medium text-lg bg-black px-3 py-1 rounded-xl">Terminal: SUPPORT-SYNC</p>
            </div>
         </div>
-        <Button onClick={() => setShowNewTicketModal(true)} className="shadow-2xl shadow-indigo-200 h-14 px-8 font-black uppercase tracking-widest text-xs w-full sm:w-auto">
-          <Camera size={18} /> Field Incident
+        <Button onClick={() => setShowNewTicketModal(true)} className="shadow-2xl shadow-indigo-200 h-14 px-8 font-black uppercase tracking-widest text-xs">
+          <Camera size={18} /> Field Incident Report
         </Button>
       </div>
 
@@ -118,7 +115,7 @@ export const TicketingSystem = ({ user }: { user: UserProfile }) => {
           <select 
             value={filterContext}
             onChange={(e) => setFilterContext(e.target.value)}
-            className="w-full bg-black text-white border-2 border-slate-800 rounded-2xl px-5 py-3.5 text-[10px] font-black uppercase tracking-widest outline-none focus:border-indigo-600 appearance-none cursor-pointer"
+            className="w-full h-full bg-black text-white border-2 border-slate-800 rounded-2xl px-5 py-3.5 text-[10px] font-black uppercase tracking-widest outline-none focus:border-indigo-600 appearance-none cursor-pointer"
           >
             <option value="ALL">All Flows</option>
             <option value="ASSET">Maintenance</option>
@@ -157,10 +154,8 @@ export const TicketingSystem = ({ user }: { user: UserProfile }) => {
                    {contextIcons[ticket.context]}
                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{ticket.context}</span>
                  </div>
-                 <div className="flex -space-x-2">
-                   <div className="w-6 h-6 rounded-full bg-slate-900 border-2 border-white flex items-center justify-center text-[8px] font-black text-white">
-                     {ticket.creatorName.charAt(0)}
-                   </div>
+                 <div className="w-6 h-6 rounded-full bg-slate-900 border-2 border-white flex items-center justify-center text-[8px] font-black text-white">
+                   {ticket.creatorName.charAt(0)}
                  </div>
                </div>
              </div>
@@ -238,15 +233,10 @@ export const TicketingSystem = ({ user }: { user: UserProfile }) => {
                  )}
 
                  <Input label="Summary Headline *" placeholder="e.g. Fan Failure - Level 1" value={form.title} onChange={(e:any)=>setForm({...form, title: e.target.value})} />
-                 
                  <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1">
                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Flow</label>
-                       <select 
-                        value={form.context} 
-                        onChange={(e) => setForm({...form, context: e.target.value as any})}
-                        className="bg-black text-white border-2 border-slate-800 rounded-2xl px-4 py-3 text-xs font-bold focus:border-indigo-600 outline-none"
-                       >
+                       <select value={form.context} onChange={(e) => setForm({...form, context: e.target.value as any})} className="bg-black text-white border-2 border-slate-800 rounded-2xl px-4 py-3 text-xs font-bold focus:border-indigo-600 outline-none">
                          <option value="SUPPORT">Support</option>
                          <option value="ASSET">Maintenance</option>
                          <option value="COMPLAINT">Grievance</option>
@@ -254,11 +244,7 @@ export const TicketingSystem = ({ user }: { user: UserProfile }) => {
                     </div>
                     <div className="flex flex-col gap-1">
                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Urgency</label>
-                       <select 
-                        value={form.priority} 
-                        onChange={(e) => setForm({...form, priority: e.target.value as any})}
-                        className="bg-black text-white border-2 border-slate-800 rounded-2xl px-4 py-3 text-xs font-bold focus:border-indigo-600 outline-none"
-                       >
+                       <select value={form.priority} onChange={(e) => setForm({...form, priority: e.target.value as any})} className="bg-black text-white border-2 border-slate-800 rounded-2xl px-4 py-3 text-xs font-bold focus:border-indigo-600 outline-none">
                          <option value="LOW">Low</option>
                          <option value="MEDIUM">Medium</option>
                          <option value="HIGH">High</option>
@@ -266,7 +252,6 @@ export const TicketingSystem = ({ user }: { user: UserProfile }) => {
                        </select>
                     </div>
                  </div>
-
                  <Input label="Technical Context" multiline placeholder="Specific stall # or component ID..." value={form.description} onChange={(e:any)=>setForm({...form, description: e.target.value})} />
 
                  <div className="flex gap-4 pt-4">

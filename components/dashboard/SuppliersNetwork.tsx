@@ -1,11 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
 import { 
   Warehouse, ShieldCheck, Star, Search, Filter, MapPin, 
   Truck, Info, X, MessageSquare, ChevronDown, Award,
   ExternalLink, BarChart3, Clock, AlertTriangle, CheckCircle2,
   Package, ThumbsUp, MoreHorizontal, ShoppingCart, Tag, Zap, ArrowRight,
-  ShieldAlert, UserPlus, ClipboardList
+  ShieldAlert, UserPlus, ClipboardList, Shield, UserCheck, Send
 } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -110,8 +109,8 @@ export const SuppliersNetwork = ({ user }: { user: UserProfile }) => {
         </div>
         <div className="flex gap-3">
           {isSupplierRole && !user.isVerified && (
-            <Button onClick={() => setShowKYCModal(true)} className="h-12 px-6 bg-amber-600 border-none font-black uppercase text-xs tracking-widest shadow-xl shadow-amber-900/20">
-               <ShieldAlert size={18}/> Verify Node KYC
+            <Button onClick={() => setShowKYCModal(true)} className="h-12 px-6 bg-indigo-600 border-none font-black uppercase text-xs tracking-widest shadow-xl shadow-indigo-100">
+               <ShieldCheck size={18}/> Finalize Node KYC
             </Button>
           )}
           <Button variant="outline" className="h-12 border-2 px-6 font-black uppercase text-xs tracking-widest"><BarChart3 size={18}/> Hub Trends</Button>
@@ -125,7 +124,7 @@ export const SuppliersNetwork = ({ user }: { user: UserProfile }) => {
           <Input icon={Search} placeholder="Search network for certified suppliers..." value={search} onChange={(e:any) => setSearch(e.target.value)} />
         </div>
         <div className="relative">
-          <select className="w-full bg-black text-white border-2 border-slate-800 rounded-2xl px-5 py-3.5 text-xs font-black uppercase tracking-widest outline-none focus:border-indigo-600 appearance-none cursor-pointer shadow-lg">
+          <select className="w-full h-full bg-black text-white border-2 border-slate-800 rounded-2xl px-5 py-3.5 text-xs font-black uppercase tracking-widest outline-none focus:border-indigo-600 appearance-none cursor-pointer shadow-lg">
             <option>Rating: Any Level</option>
             <option>Elite (4.5+)</option>
             <option>Highly Reliable (4.0+)</option>
@@ -133,7 +132,7 @@ export const SuppliersNetwork = ({ user }: { user: UserProfile }) => {
           <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
         </div>
         <div className="relative">
-          <select className="w-full bg-black text-white border-2 border-slate-800 rounded-2xl px-5 py-3.5 text-xs font-black uppercase tracking-widest outline-none focus:border-indigo-600 appearance-none cursor-pointer shadow-lg">
+          <select className="w-full h-full bg-black text-white border-2 border-slate-800 rounded-2xl px-5 py-3.5 text-xs font-black uppercase tracking-widest outline-none focus:border-indigo-600 appearance-none cursor-pointer shadow-lg">
             <option>Compliance: All</option>
             <option>KYC Verified Only</option>
             <option>Pending Verification</option>
@@ -145,14 +144,7 @@ export const SuppliersNetwork = ({ user }: { user: UserProfile }) => {
       {/* Supplier Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filtered.map(supplier => (
-          <Card key={supplier.id} className="p-0 overflow-hidden border-slate-100 hover:border-indigo-200 transition-all group shadow-xl rounded-[32px]">
-             {!supplier.kycValidated && (
-               <div className="bg-amber-500 py-1.5 px-8 text-center">
-                  <p className="text-[9px] font-black uppercase text-white tracking-[0.2em] flex items-center justify-center gap-2">
-                    <ShieldAlert size={12}/> Unverified Entity - Pending Verification
-                  </p>
-               </div>
-             )}
+          <Card key={supplier.id} className="p-0 overflow-hidden border-slate-100 hover:border-indigo-200 transition-all group shadow-xl rounded-[32px] relative">
              <div className="p-8">
                <div className="flex justify-between items-start mb-6">
                  <div className="flex gap-5">
@@ -162,9 +154,16 @@ export const SuppliersNetwork = ({ user }: { user: UserProfile }) => {
                     <div>
                       <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                         {supplier.name}
-                        {supplier.kycValidated && <ShieldCheck size={20} className="text-indigo-500" />}
+                        {supplier.kycValidated ? (
+                           <ShieldCheck size={20} className="text-indigo-500" />
+                        ) : (
+                           <AlertTriangle size={20} className="text-amber-500" />
+                        )}
                       </h3>
-                      <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-0.5">{supplier.category} Node</p>
+                      <div className="flex items-center gap-2 mt-1">
+                         <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">{supplier.category} Node</span>
+                         {!supplier.kycValidated && <span className="text-[8px] font-black bg-amber-50 text-amber-600 px-2 py-0.5 rounded border border-amber-100 uppercase animate-pulse">Audit Required</span>}
+                      </div>
                     </div>
                  </div>
                  <div className="text-right">
@@ -172,7 +171,7 @@ export const SuppliersNetwork = ({ user }: { user: UserProfile }) => {
                       <Star size={18} fill={supplier.rating > 0 ? "currentColor" : "none"} />
                       <span className="text-lg font-black">{supplier.rating || 'N/A'}</span>
                    </div>
-                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{supplier.totalRatings} Reviews</p>
+                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{supplier.totalRatings} Audits</p>
                  </div>
                </div>
 
@@ -183,18 +182,24 @@ export const SuppliersNetwork = ({ user }: { user: UserProfile }) => {
                   </div>
                   <div className="space-y-1.5">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><Package size={12}/> Catalog Load</p>
-                    <p className="text-xs font-bold text-slate-800">{supplier.showcase?.length || 0} Listed Commodities</p>
+                    <p className="text-xs font-bold text-slate-800">{supplier.showcase?.length || 0} Trade Entities</p>
                   </div>
                </div>
 
                <div className="flex gap-3">
-                 <Button variant="secondary" onClick={() => setSelectedSupplier(supplier)} className="flex-1 h-12 text-[10px] font-black uppercase tracking-widest border-slate-200 shadow-sm">
-                    View Showcase
+                 <Button variant="secondary" onClick={() => setSelectedSupplier(supplier)} className="flex-1 h-12 text-[10px] font-black uppercase tracking-widest border-slate-200 shadow-sm hover:border-indigo-300">
+                    Explore Showcase
                  </Button>
                  {isVendor && supplier.status === 'ACTIVE' && (
-                    <Button onClick={() => handleRequestProduct(supplier)} className="flex-1 h-12 text-[10px] font-black uppercase tracking-widest bg-indigo-600 border-none shadow-lg shadow-indigo-100">
-                      <ShoppingCart size={14}/> Request Product
-                    </Button>
+                    <div className="flex-1 flex gap-2">
+                       <Button onClick={() => handleRequestProduct(supplier)} className="flex-1 h-12 text-[10px] font-black uppercase tracking-widest bg-indigo-600 border-none shadow-lg shadow-indigo-100">
+                         <ShoppingCart size={14}/> RFQ
+                       </Button>
+                       {/* Fixed: title prop is now supported on Button component */}
+                       <Button onClick={() => handleRateSupplier(supplier)} variant="outline" className="h-12 w-12 p-0 border-2" title="Rate Supplier">
+                          <Star size={16} />
+                       </Button>
+                    </div>
                  )}
                </div>
              </div>
@@ -202,44 +207,78 @@ export const SuppliersNetwork = ({ user }: { user: UserProfile }) => {
         ))}
       </div>
 
+      {/* Rating Modal */}
+      {showRatingModal && selectedSupplier && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[300] flex items-center justify-center p-4">
+          <Card className="w-full max-w-md shadow-2xl rounded-[40px] p-10 bg-white relative border-none">
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-amber-500"></div>
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-black text-slate-900 uppercase">Trust Audit</h3>
+              <button onClick={() => setShowRatingModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors"><X size={28}/></button>
+            </div>
+            <div className="text-center mb-8">
+               <p className="text-slate-500 font-medium mb-4">Rate your transaction experience with <span className="font-black text-slate-900 underline">{selectedSupplier.name}</span></p>
+               <div className="flex justify-center gap-2">
+                 {[1,2,3,4,5].map(star => (
+                   <button 
+                     key={star} 
+                     onClick={() => setRatingForm({...ratingForm, score: star})}
+                     className={`p-1 transition-all hover:scale-125 ${star <= ratingForm.score ? 'text-amber-500' : 'text-slate-200'}`}
+                   >
+                     <Star size={40} fill={star <= ratingForm.score ? "currentColor" : "none"} />
+                   </button>
+                 ))}
+               </div>
+            </div>
+            <Input 
+              label="Performance Comments" 
+              multiline 
+              placeholder="Fulfillment speed, quality of goods, documentation integrity..." 
+              value={ratingForm.comment}
+              onChange={(e:any) => setRatingForm({...ratingForm, comment: e.target.value})}
+            />
+            <div className="flex gap-4 mt-8">
+               <Button variant="secondary" className="flex-1" onClick={() => setShowRatingModal(false)}>Discard</Button>
+               <Button className="flex-2 h-14 !bg-slate-900 border-none shadow-xl text-white font-black uppercase text-xs" onClick={submitRating}>
+                 <UserCheck size={18}/> Commit Audit Entry
+               </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* Product Request Modal */}
       {showRequestModal && selectedSupplier && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-fade-in">
-           <Card className="w-full max-w-xl shadow-2xl border-none rounded-[40px] p-10 relative bg-white overflow-hidden my-auto">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[300] flex items-center justify-center p-4">
+           <Card className="w-full max-w-lg shadow-2xl rounded-[40px] p-10 bg-white relative border-none">
               <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-600"></div>
               <div className="flex justify-between items-center mb-8">
-                 <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Commodity Request</h3>
-                 <button onClick={() => setShowRequestModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors"><X size={28} /></button>
+                 <h3 className="text-2xl font-black text-slate-900 uppercase">RFQ Initialization</h3>
+                 <button onClick={() => setShowRequestModal(false)} className="text-slate-400 hover:text-slate-600"><X size={28}/></button>
               </div>
-              <div className="bg-slate-50 p-6 rounded-3xl flex items-center gap-4 mb-8 border border-slate-100">
-                 <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black">{selectedSupplier.name.charAt(0)}</div>
-                 <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fulfillment Node</p>
-                    <p className="text-sm font-black text-slate-800 uppercase">{selectedSupplier.name}</p>
-                 </div>
-              </div>
-              <div className="space-y-6">
-                 <Input label="Target Commodity Name *" placeholder="e.g. Bulk Soya Beans (Refined)" value={requestForm.item} onChange={(e:any)=>setRequestForm({...requestForm, item: e.target.value})} />
+              <div className="space-y-4">
+                 <Input label="Target Commodity *" placeholder="e.g. Premium Basmati Rice" value={requestForm.item} onChange={(e:any)=>setRequestForm({...requestForm, item: e.target.value})} />
                  <div className="grid grid-cols-2 gap-4">
-                    <Input label="Quantity (approx) *" placeholder="50 Bags" value={requestForm.qty} onChange={(e:any)=>setRequestForm({...requestForm, qty: e.target.value})} />
-                    <div className="flex flex-col gap-1">
-                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Lead Priority</label>
+                    <Input label="Target Quantity *" type="number" placeholder="0" value={requestForm.qty} onChange={(e:any)=>setRequestForm({...requestForm, qty: e.target.value})} />
+                    <div className="flex flex-col gap-1.5">
+                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Integrity Prio</label>
                        <select 
-                         value={requestForm.priority}
-                         onChange={(e)=>setRequestForm({...requestForm, priority: e.target.value})}
-                         className="w-full bg-black text-white border-2 border-slate-800 rounded-2xl px-5 py-4 text-xs font-black uppercase tracking-widest outline-none shadow-xl"
+                        value={requestForm.priority}
+                        onChange={(e)=>setRequestForm({...requestForm, priority: e.target.value})}
+                        className="bg-black text-white p-4 rounded-2xl text-xs font-black uppercase outline-none shadow-xl border-2 border-slate-800"
                        >
-                          <option value="LOW">Flexible (Standard)</option>
-                          <option value="MEDIUM">High Priority</option>
-                          <option value="URGENT">Critical Lead</option>
+                         <option value="LOW">Low Latency</option>
+                         <option value="MEDIUM">Standard Cycle</option>
+                         <option value="HIGH">Critical Logistics</option>
                        </select>
                     </div>
                  </div>
-                 <Input label="Technical Requirements" multiline placeholder="Grade requirements, packaging specs, delivery node..." value={requestForm.notes} onChange={(e:any)=>setRequestForm({...requestForm, notes: e.target.value})} />
-                 
-                 <div className="flex gap-4 pt-4">
-                    <Button variant="secondary" onClick={() => setShowRequestModal(false)} className="flex-1 h-14 font-black uppercase text-[10px]">Abort</Button>
-                    <Button onClick={submitProductRequest} className="flex-2 h-14 bg-indigo-600 border-none shadow-xl font-black uppercase text-[10px] text-white">Broadcast Request</Button>
+                 <Input label="Technical Context" multiline placeholder="Moisture levels, delivery coordinates, etc..." value={requestForm.notes} onChange={(e:any)=>setRequestForm({...requestForm, notes: e.target.value})} />
+                 <div className="flex gap-4 pt-6">
+                    <Button variant="secondary" className="flex-1" onClick={() => setShowRequestModal(false)}>Abort</Button>
+                    <Button className="flex-2 h-14 bg-indigo-600 border-none shadow-xl text-white font-black uppercase text-xs" onClick={submitProductRequest}>
+                       <Send size={18}/> Broadcast Requisition
+                    </Button>
                  </div>
               </div>
            </Card>
@@ -252,158 +291,12 @@ export const SuppliersNetwork = ({ user }: { user: UserProfile }) => {
            <div className="max-w-4xl mx-auto py-12 px-6">
               <div className="flex justify-between items-center mb-12">
                  <button onClick={() => setShowKYCModal(false)} className="flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors">
-                    <X size={24}/> <span className="font-black uppercase text-xs tracking-widest">Cancel Application</span>
+                    <X size={24}/> <span className="font-black uppercase text-xs tracking-widest">Abort Verification</span>
                  </button>
-                 <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-black">M</div>
+                 <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-black shadow-lg">M</div>
               </div>
-              <KYCModule type="SUPPLIER" userEmail={user.email} onComplete={() => setShowKYCModal(false)} />
+              <KYCModule type="SUPPLIER" userEmail={user.email} onComplete={() => { setShowKYCModal(false); alert("Success: Your Supplier KYC dossier has been committed to the administrative ledger."); }} />
            </div>
-        </div>
-      )}
-
-      {/* Supplier Details Modal */}
-      {selectedSupplier && !showRatingModal && !showRequestModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[130] flex items-center justify-center p-4 animate-fade-in">
-          <Card className="w-full max-w-4xl shadow-2xl border-none rounded-[48px] p-0 relative bg-white overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div>
-            
-            <div className="p-10 border-b border-slate-100 shrink-0">
-               <div className="flex justify-between items-start mb-6">
-                 <div className="flex gap-8 items-center">
-                   <div className="w-24 h-24 bg-slate-900 text-white rounded-[32px] flex items-center justify-center text-5xl font-black shadow-2xl ring-8 ring-indigo-50">
-                     {selectedSupplier.name.charAt(0)}
-                   </div>
-                   <div>
-                     <h3 className="text-4xl font-black text-slate-900 tracking-tighter leading-tight">{selectedSupplier.name}</h3>
-                     <div className="flex flex-wrap items-center gap-3 mt-2">
-                        <span className="text-[10px] font-black bg-indigo-600 text-white px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">{selectedSupplier.category} Sector</span>
-                        <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5 ${selectedSupplier.kycValidated ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                           {selectedSupplier.kycValidated ? <ShieldCheck size={12}/> : <Clock size={12}/>}
-                           {selectedSupplier.kycValidated ? 'Credentialed Partner' : 'Verification Pending'}
-                        </span>
-                     </div>
-                   </div>
-                 </div>
-                 <button onClick={() => setSelectedSupplier(null)} className="p-4 hover:bg-slate-100 rounded-full text-slate-400 transition-all"><X size={32} /></button>
-               </div>
-               
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Average Trust Index</p>
-                    <p className="text-2xl font-black text-amber-500 flex items-center justify-center gap-2">{selectedSupplier.rating} <Star fill="currentColor" size={18}/></p>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Market Audits</p>
-                    <p className="text-2xl font-black text-slate-800">{selectedSupplier.totalRatings}</p>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Hub Tenure</p>
-                    <p className="text-2xl font-black text-slate-800">{new Date(selectedSupplier.onboardingDate).getFullYear()}</p>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Global Health</p>
-                    <p className="text-2xl font-black text-emerald-600 uppercase tracking-tighter">Verified</p>
-                  </div>
-               </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-10 custom-scrollbar space-y-10">
-               <div>
-                 <div className="flex items-center justify-between mb-6">
-                    <h4 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                       <Zap className="text-indigo-600" size={24} /> Service & Product Showcase
-                    </h4>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{selectedSupplier.showcase?.length || 0} Registered Listings</span>
-                 </div>
-
-                 {(!selectedSupplier.showcase || selectedSupplier.showcase.length === 0) ? (
-                    <div className="text-center py-16 bg-slate-50 rounded-[32px] border-2 border-dashed border-slate-100">
-                       <Package className="mx-auto mb-4 text-slate-300" size={48} />
-                       <p className="text-slate-400 font-bold uppercase text-xs tracking-widest leading-relaxed">No active showcase listings published <br/> by this trade node.</p>
-                    </div>
-                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       {selectedSupplier.showcase.map(item => (
-                          <div key={item.id} className="p-6 bg-white border border-slate-100 rounded-[32px] shadow-sm hover:shadow-xl transition-all group border-l-4 border-l-indigo-600">
-                             <div className="flex justify-between items-start mb-4">
-                                <span className="text-[9px] font-black bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full uppercase tracking-widest">{item.category}</span>
-                                <Tag size={16} className="text-slate-200 group-hover:text-indigo-400 transition-colors" />
-                             </div>
-                             <h5 className="text-lg font-black text-slate-900 tracking-tight mb-2">{item.name}</h5>
-                             <p className="text-xs text-slate-500 leading-relaxed mb-6 font-medium line-clamp-2">{item.description}</p>
-                             <div className="flex justify-between items-center pt-4 border-t border-slate-50">
-                                <span className="text-xs font-black text-slate-900">{item.priceRange}</span>
-                                {isVendor && (
-                                   <Button onClick={() => handleRequestProduct(selectedSupplier)} className="h-8 px-4 text-[10px] font-black uppercase bg-slate-900 hover:bg-indigo-600 border-none shadow-none">RFQ Sync</Button>
-                                )}
-                             </div>
-                          </div>
-                       ))}
-                    </div>
-                 )}
-               </div>
-
-               <div>
-                  <h4 className="text-[10px] uppercase text-slate-400 font-black tracking-widest mb-6 px-2 flex items-center gap-2"><Award size={14} className="text-indigo-400"/> Trade Compliance & Standards</h4>
-                  <div className="space-y-3">
-                     <div className="flex items-center justify-between p-5 bg-slate-900 text-white rounded-2xl shadow-xl">
-                        <div className="flex items-center gap-3">
-                           <ShieldCheck size={20} className="text-emerald-400" />
-                           <span className="text-xs font-bold uppercase tracking-widest">Anti-Fraud Node Auth</span>
-                        </div>
-                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Passed Cycle #12</span>
-                     </div>
-                     <div className="flex items-center justify-between p-5 bg-slate-50 border border-slate-100 rounded-2xl">
-                        <div className="flex items-center gap-3">
-                           <MapPin size={20} className="text-slate-400" />
-                           <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">Global Sourcing Audit</span>
-                        </div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Physical verified</span>
-                     </div>
-                  </div>
-               </div>
-            </div>
-
-            <div className="p-8 bg-slate-50 border-t border-slate-100 flex gap-4 shrink-0">
-               <Button variant="secondary" onClick={() => setSelectedSupplier(null)} className="flex-1 h-14 font-black uppercase text-xs tracking-widest">Dismiss Dossier</Button>
-               {isVendor && (
-                  <Button onClick={() => handleRequestProduct(selectedSupplier)} className="flex-[2] h-14 bg-indigo-600 border-none shadow-2xl shadow-indigo-100 font-black uppercase text-xs tracking-widest">
-                     Initialize Requisition <ArrowRight size={18} className="ml-2" />
-                  </Button>
-               )}
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Rating Modal */}
-      {showRatingModal && selectedSupplier && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[150] flex items-center justify-center p-4 animate-fade-in">
-          <Card className="w-full max-w-md shadow-2xl border-none rounded-[40px] p-10 relative bg-white">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-600"></div>
-            <div className="flex justify-between items-center mb-8">
-               <h3 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Audit Supplier</h3>
-               <button onClick={() => setShowRatingModal(false)}><X size={24} className="text-slate-400" /></button>
-            </div>
-            <div className="space-y-8">
-               <div className="flex justify-center gap-3">
-                 {[1,2,3,4,5].map(star => (
-                    <button 
-                      key={star} 
-                      onClick={() => setRatingForm({...ratingForm, score: star})}
-                      className={`p-2 transition-all hover:scale-125 ${ratingForm.score >= star ? 'text-amber-500' : 'text-slate-200'}`}
-                    >
-                      <Star size={40} fill={ratingForm.score >= star ? "currentColor" : "none"} />
-                    </button>
-                 ))}
-               </div>
-               <Input label="Trade Audit Observations" multiline placeholder="Describe logistics reliability, stock integrity, or packing quality..." value={ratingForm.comment} onChange={(e:any) => setRatingForm({...ratingForm, comment: e.target.value})} />
-               <div className="flex gap-4">
-                 <Button variant="secondary" onClick={() => setShowRatingModal(false)} className="flex-1 font-black uppercase text-[10px] h-12">Discard</Button>
-                 <Button onClick={submitRating} className="flex-2 font-black uppercase text-[10px] h-12 shadow-xl shadow-indigo-100 bg-indigo-600 border-none">Commit Audit</Button>
-               </div>
-            </div>
-          </Card>
         </div>
       )}
     </div>
