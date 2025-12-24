@@ -1,3 +1,4 @@
+
 export type Role = 'SUPER_ADMIN' | 'MARKET_ADMIN' | 'COUNTER_STAFF' | 'VENDOR' | 'SUPPLIER' | 'USER';
 
 export interface UserSettings {
@@ -36,10 +37,20 @@ export interface Vendor {
   city: string;
   market: string;
   rentDue: number;
+  vatDue: number;
   level?: string;
   section?: string;
   storeType?: 'STALL' | 'KIOSK' | 'SHOP' | 'WAREHOUSE';
   ownershipType?: 'LEASED' | 'OWNED' | 'SUB-LEASED';
+}
+
+export interface SupplierShowcaseItem {
+  id: string;
+  name: string;
+  description: string;
+  priceRange: string;
+  category: string;
+  image?: string;
 }
 
 export interface Supplier {
@@ -51,7 +62,82 @@ export interface Supplier {
   warehouseLocation: string;
   suppliedItemsCount: number;
   rating: number;
+  totalRatings: number;
+  kycValidated: boolean;
   onboardingDate: string;
+  walletBalance: number;
+  showcase?: SupplierShowcaseItem[];
+}
+
+export interface Bid {
+  id: string;
+  supplierId: string;
+  supplierName: string;
+  price: number;
+  deliveryDate: string;
+  notes: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+}
+
+export interface Requisition {
+  id: string;
+  vendorId: string;
+  vendorName: string;
+  itemName: string;
+  quantity: number;
+  unit: string;
+  budget: number;
+  status: 'OPEN' | 'BIDDING' | 'ASSIGNED' | 'TRANSIT' | 'COMPLETED' | 'CANCELLED';
+  createdAt: string;
+  description: string;
+  bids: Bid[];
+  acceptedBidId?: string;
+}
+
+export interface ManifestItem {
+  id: string;
+  vendorId: string;
+  vendorName: string;
+  itemName: string;
+  qty: number;
+  estPrice: number;
+  paid: boolean;
+}
+
+export interface BridgeLogistics {
+  id: string;
+  dispatchDate: string;
+  status: 'PREPARING' | 'DISPATCHED' | 'PURCHASING' | 'RETURNING' | 'ARRIVED';
+  capacity: number; // 0-100
+  items: ManifestItem[];
+}
+
+export interface Ticket {
+  id: string;
+  title: string;
+  description: string;
+  context: 'SUPPORT' | 'ASSET' | 'SUPPLY' | 'COMPLAINT';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  status: 'OPEN' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+  creatorId: string;
+  creatorName: string;
+  createdAt: string;
+  assetType?: 'CCTV' | 'POWER' | 'FAN' | 'BULB' | 'PLUMBING' | 'GENERAL';
+  targetEntityId?: string;
+  assignedToId?: string;
+  assignedToName?: string;
+  resolutionNote?: string;
+  attachmentUrl?: string; 
+}
+
+export interface Rating {
+  id: string;
+  supplierId: string;
+  vendorId: string;
+  vendorName: string;
+  score: number;
+  comment: string;
+  createdAt: string;
 }
 
 export interface Product {
@@ -69,9 +155,10 @@ export interface Transaction {
   id: string;
   date: string;
   amount: number;
-  type: 'RENT' | 'SERVICE_CHARGE' | 'LICENSE' | 'WITHDRAWAL' | 'SUPPLY_PAYMENT';
+  type: 'RENT' | 'SERVICE_CHARGE' | 'LICENSE' | 'WITHDRAWAL' | 'SUPPLY_PAYMENT' | 'VAT';
   status: 'SUCCESS' | 'FAILED' | 'PENDING';
   method: string;
+  referenceId?: string;
 }
 
 export interface Market {

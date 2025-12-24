@@ -4,6 +4,7 @@ import { LucideIcon } from 'lucide-react';
 
 interface InputProps {
   label?: string;
+  name?: string;
   type?: string;
   placeholder?: string;
   icon?: LucideIcon;
@@ -16,8 +17,8 @@ interface InputProps {
   className?: string;
 }
 
-// Added className to component parameters and applied it to the container div
-export const Input = ({ label, type = 'text', placeholder, icon: Icon, value, onChange, disabled, multiline, required, className = '' }: InputProps) => (
+// Fixed: Added name property to Input component to allow uncontrolled form access
+export const Input = ({ label, name, type = 'text', placeholder, icon: Icon, value, onChange, disabled, multiline, required, className = '' }: InputProps) => (
   <div className={`mb-4 ${className}`}>
     {label && (
       <label className="block text-xs font-black text-slate-700 uppercase tracking-widest mb-2 px-1">
@@ -28,6 +29,7 @@ export const Input = ({ label, type = 'text', placeholder, icon: Icon, value, on
       {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 z-10 transition-colors group-focus-within:text-indigo-400" />}
       {multiline ? (
         <textarea
+          name={name}
           value={value}
           onChange={onChange}
           disabled={disabled}
@@ -38,6 +40,7 @@ export const Input = ({ label, type = 'text', placeholder, icon: Icon, value, on
         />
       ) : (
         <input
+          name={name}
           type={type}
           value={value}
           onChange={onChange}

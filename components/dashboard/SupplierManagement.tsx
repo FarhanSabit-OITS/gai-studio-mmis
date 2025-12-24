@@ -1,346 +1,287 @@
 
 import React, { useState, useMemo } from 'react';
-// Added MapPin to imports to fix "Cannot find name 'MapPin'" error
 import { 
-  Search, Plus, Filter, Package, Truck, History, Star, 
-  MoreVertical, CheckCircle, XCircle, Clock, LayoutDashboard, 
+  Search, Plus, Package, Truck, Star, 
+  MoreVertical, CheckCircle, Clock, LayoutDashboard, 
   Boxes, CreditCard, ArrowUpRight, ArrowDownLeft, TrendingUp,
-  Warehouse, ShieldCheck, ExternalLink, MoreHorizontal, MapPin
+  Warehouse, ShieldCheck, MapPin, DollarSign, ArrowRight,
+  Zap, PieChart, Wallet, ShoppingBag, Landmark, X, Smartphone, Lock, Edit, Trash2, Tag, Info,
+  ChevronDown, Mail, Printer, Share2, Globe, Award
 } from 'lucide-react';
 import { Card } from '../ui/Card';
-import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
-import { UserProfile, Supplier, Product, Transaction } from '../../types';
+import { Input } from '../ui/Input';
+import { UserProfile, Supplier, SupplierShowcaseItem } from '../../types';
 
-interface SupplierManagementProps {
-  user: UserProfile;
-}
-
-export const SupplierManagement = ({ user }: SupplierManagementProps) => {
+export const SupplierManagement = ({ user }: { user: UserProfile }) => {
   const isSupplier = user.role === 'SUPPLIER';
   const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'MARKET_ADMIN';
-
   const [activeTab, setActiveTab] = useState<string>(isSupplier ? 'MY_DASHBOARD' : 'DIRECTORY');
   const [search, setSearch] = useState('');
-
-  // Mock data for Supplier's view
-  const myProducts: Product[] = [
-    { id: 'P-101', name: 'Premium Jasmine Rice (100kg)', vendor: user.name, stock: 450, price: 320000, status: 'HEALTHY', category: 'Cereals' },
-    { id: 'P-102', name: 'Refined Sugar Bulk (50kg)', vendor: user.name, stock: 20, price: 180000, status: 'LOW', category: 'Groceries' },
-    { id: 'P-103', name: 'Refined Sunflower Oil (200L)', vendor: user.name, stock: 5, price: 1200000, status: 'CRITICAL', category: 'Groceries' },
-  ];
-
-  const myTransactions: Transaction[] = [
-    { id: 'TX-S1', date: '2024-05-18 10:30', amount: 4500000, type: 'SUPPLY_PAYMENT', status: 'SUCCESS', method: 'Bank Transfer' },
-    { id: 'TX-S2', date: '2024-05-15 14:20', amount: 1200000, type: 'WITHDRAWAL', status: 'SUCCESS', method: 'Mobile Money' },
-    { id: 'TX-S3', date: '2024-05-10 09:15', amount: 890000, type: 'SERVICE_CHARGE', status: 'SUCCESS', method: 'Deducted from Balance' },
-  ];
-
-  const [suppliers] = useState<Supplier[]>([
-    { id: 'S-001', name: 'Nile Agro Ltd', email: 'supply@nileagro.com', category: 'Cereals', status: 'ACTIVE', warehouseLocation: 'Jinja Industrial Area', suppliedItemsCount: 12, rating: 4.8, onboardingDate: '2023-01-10' },
-    { id: 'S-002', name: 'Kampala Logistics', email: 'info@kpalalogistics.ug', category: 'Household', status: 'PENDING', warehouseLocation: 'Bweyogerere', suppliedItemsCount: 45, rating: 4.2, onboardingDate: '2024-05-12' },
-    { id: 'S-003', name: 'Dairy King', email: 'orders@dairyking.co', category: 'Dairy', status: 'ACTIVE', warehouseLocation: 'Mbarara City', suppliedItemsCount: 8, rating: 4.9, onboardingDate: '2022-11-20' },
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+  
+  // Showcase CRUD State
+  const [showAddShowcase, setShowAddShowcase] = useState(false);
+  const [editingShowcaseItem, setEditingShowcaseItem] = useState<SupplierShowcaseItem | null>(null);
+  const [showcaseForm, setShowcaseForm] = useState({ name: '', description: '', priceRange: '', category: 'General' });
+  
+  const [suppliers, setSuppliers] = useState<Supplier[]>([
+    { id: 'S-8801', name: 'Nile Agro-Processing', email: 'supply@nileagro.ug', category: 'Cereals', status: 'ACTIVE', warehouseLocation: 'Jinja Industrial', suppliedItemsCount: 42, rating: 4.8, totalRatings: 124, kycValidated: true, onboardingDate: '2023-01-12', walletBalance: 4800000, showcase: [
+        { id: 'SC-01', name: 'Premium Grade Maize', description: 'Sun-dried, moisture level below 12%.', priceRange: 'UGX 150k - 200k / Bag', category: 'Grain' },
+    ] },
+    { id: 'S-8802', name: 'Kampala Cold Storage', email: 'ops@kp-cold.ug', category: 'Dairy', status: 'ACTIVE', warehouseLocation: 'Bweyogerere', suppliedItemsCount: 12, rating: 4.5, totalRatings: 56, kycValidated: true, onboardingDate: '2023-05-20', walletBalance: 1200000, showcase: [] },
   ]);
 
-  const filteredSuppliers = suppliers.filter(s => 
-    s.name.toLowerCase().includes(search.toLowerCase()) || 
-    s.warehouseLocation.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleSaveShowcase = () => {
+    if (isSupplier) {
+      if (editingShowcaseItem) {
+        setSuppliers(suppliers.map(s => {
+          if (s.email === user.email) {
+            return {
+              ...s,
+              showcase: s.showcase?.map(item => item.id === editingShowcaseItem.id ? { ...item, ...showcaseForm } : item)
+            };
+          }
+          return s;
+        }));
+      } else {
+        const newItem: SupplierShowcaseItem = { id: 'SC-' + Math.floor(100 + Math.random() * 900), ...showcaseForm };
+        setSuppliers(suppliers.map(s => {
+          if (s.email === user.email) {
+            return {
+              ...s,
+              showcase: [...(s.showcase || []), newItem]
+            };
+          }
+          return s;
+        }));
+      }
+      alert("Trade ledger synchronized. Showcase updated.");
+    }
+    setShowAddShowcase(false);
+    setEditingShowcaseItem(null);
+    setShowcaseForm({ name: '', description: '', priceRange: '', category: 'General' });
+  };
 
-  const renderSupplierDashboard = () => (
-    <div className="space-y-6 animate-fade-in">
-      {/* Stats Header */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-indigo-600 text-white p-6 relative overflow-hidden">
-          <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Settled Earnings</p>
-          <h3 className="text-3xl font-black mt-1">UGX 12.8M</h3>
-          <div className="mt-4 flex items-center gap-1 text-[10px] bg-white/10 w-fit px-2 py-1 rounded">
-            <TrendingUp size={12} /> +12% from last month
-          </div>
-          <CreditCard className="absolute -right-4 -bottom-4 opacity-10" size={100} />
-        </Card>
-        <Card className="border-l-4 border-l-emerald-500 p-6">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Orders</p>
-          <h3 className="text-3xl font-black text-slate-900 mt-1">14</h3>
-          <p className="text-xs text-slate-500 mt-2">4 ready for dispatch</p>
-        </Card>
-        <Card className="border-l-4 border-l-amber-500 p-6">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Supplier Rating</p>
-          <div className="flex items-center gap-2 mt-1">
-            <h3 className="text-3xl font-black text-slate-900">4.9</h3>
-            <div className="flex text-amber-500"><Star size={16} fill="currentColor"/><Star size={16} fill="currentColor"/><Star size={16} fill="currentColor"/><Star size={16} fill="currentColor"/><Star size={16} fill="currentColor"/></div>
-          </div>
-          <p className="text-xs text-slate-500 mt-2">Top 5% Supplier</p>
-        </Card>
-        <Card className="border-l-4 border-l-blue-500 p-6">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventory Status</p>
-          <h3 className="text-3xl font-black text-slate-900 mt-1">94%</h3>
-          <p className="text-xs text-slate-500 mt-2">Stock health optimal</p>
-        </Card>
-      </div>
+  const deleteShowcaseItem = (id: string) => {
+    if (confirm("Purge this listing from the network showcase?")) {
+      setSuppliers(suppliers.map(s => {
+        if (s.email === user.email) {
+          return {
+            ...s,
+            showcase: s.showcase?.filter(item => item.id !== id)
+          };
+        }
+        return s;
+      }));
+    }
+  };
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Supply Payments */}
-        <Card title="Payment Settlements" className="shadow-lg border-slate-100">
-          <div className="space-y-4">
-            {myTransactions.map((tx) => (
-              <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'WITHDRAWAL' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                    {tx.type === 'WITHDRAWAL' ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">{tx.type.replace('_', ' ')}</p>
-                    <p className="text-[10px] text-slate-400">{tx.date}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-black text-slate-900">UGX {tx.amount.toLocaleString()}</p>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase">{tx.method}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-          <Button variant="ghost" className="w-full mt-4 text-[10px] font-black uppercase tracking-widest text-indigo-600">View Full Ledger</Button>
-        </Card>
-
-        {/* Warehouse Mapping */}
-        <Card title="Logistics & Warehousing" className="shadow-lg border-slate-100">
-          <div className="relative h-48 bg-slate-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
-             <div className="absolute inset-0 opacity-20 grayscale">
-               <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover" alt="Warehouse Map" />
-             </div>
-             <div className="relative z-10 text-center">
-                <MapPin className="text-indigo-600 mx-auto mb-2" size={32} />
-                <p className="text-xs font-bold text-slate-900">Primary Hub: Jinja Industrial Area</p>
-                <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Zone 4B, Sector 12</p>
-             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-3 bg-slate-50 rounded-xl">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Stock Area</p>
-              <p className="text-sm font-bold text-slate-800">1,200 sq.ft</p>
-            </div>
-            <div className="p-3 bg-slate-50 rounded-xl">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Cold Storage</p>
-              <p className="text-sm font-bold text-slate-800">Available</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const renderProductListing = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-black text-slate-800 tracking-tight">Bulk Catalog Management</h3>
-        <Button className="text-xs font-black uppercase tracking-widest"><Plus size={16} /> New Supply Listing</Button>
-      </div>
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                <th className="px-4 py-4">Item Catalog</th>
-                <th className="px-4 py-4">Stock Reserve</th>
-                <th className="px-4 py-4">Wholesale Price</th>
-                <th className="px-4 py-4">Supply Status</th>
-                <th className="px-4 py-4 text-right">Control</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {myProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
-                        <Package size={20} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-800">{product.name}</p>
-                        <p className="text-[10px] text-indigo-600 font-black uppercase tracking-widest">{product.category}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <p className="text-sm font-black text-slate-700">{product.stock.toLocaleString()} Units</p>
-                    <div className={`w-24 h-1.5 rounded-full bg-slate-100 mt-2 overflow-hidden`}>
-                      <div className={`h-full ${product.status === 'HEALTHY' ? 'bg-emerald-500' : 'bg-red-500'}`} style={{ width: `${Math.min((product.stock / 500) * 100, 100)}%` }} />
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <p className="text-sm font-bold text-slate-900">UGX {product.price.toLocaleString()}</p>
-                    <p className="text-[9px] text-slate-400 uppercase font-black">Per Bulk Unit</p>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${
-                      product.status === 'HEALTHY' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
-                    }`}>
-                      {product.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-right">
-                    <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
-                      <MoreHorizontal size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-    </div>
-  );
-
-  const renderDirectory = () => (
-    <Card>
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Input icon={Search} placeholder="Search by name or warehouse..." value={search} onChange={(e:any) => setSearch(e.target.value)} />
-        <select className="bg-black text-white border border-slate-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-          <option>All Product Domains</option>
-          <option>Agriculture</option>
-          <option>FMCG</option>
-          <option>Industrial Parts</option>
-        </select>
-        <select className="bg-black text-white border border-slate-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-          <option>Supply Capacity</option>
-          <option>Bulk Only (>1 Ton)</option>
-          <option>High Volume Traders</option>
-        </select>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              <th className="px-4 py-4">Entity Information</th>
-              <th className="px-4 py-4">Warehousing</th>
-              <th className="px-4 py-4">Active Capacity</th>
-              <th className="px-4 py-4">Rating</th>
-              <th className="px-4 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {filteredSuppliers.map(s => (
-              <tr key={s.id} className="hover:bg-slate-50 transition-colors group">
-                <td className="px-4 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                      <Truck size={20} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-800">{s.name}</p>
-                      <p className="text-[10px] text-slate-400">{s.email}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-4">
-                  <p className="text-xs font-semibold text-slate-600 truncate max-w-[150px]">{s.warehouseLocation}</p>
-                  <div className="flex items-center gap-1 text-[9px] text-indigo-500 font-black uppercase mt-1">
-                    <MapPin size={10} /> Regional Hub
-                  </div>
-                </td>
-                <td className="px-4 py-4">
-                  <div className="flex flex-col">
-                    <p className="text-xs font-black text-slate-800">{s.suppliedItemsCount} Items</p>
-                    <span className={`w-fit mt-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter ${
-                      s.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                    }`}>
-                      {s.status}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-4">
-                   <div className="flex items-center gap-1 text-amber-500 font-black text-xs">
-                     <Star size={12} fill="currentColor" /> {s.rating}
-                   </div>
-                   <p className="text-[9px] text-slate-400 uppercase mt-1">Trusted Partner</p>
-                </td>
-                <td className="px-4 py-4 text-right">
-                  <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600">
-                    <MoreVertical size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Card>
-  );
+  const filteredSuppliers = useMemo(() => {
+    return suppliers.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()));
+  }, [suppliers, search]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-            <Warehouse className="text-indigo-600" size={28} />
-            {isSupplier ? 'My Supplier Portal' : 'Supplier Ecosystem'}
-          </h2>
-          <p className="text-slate-500">
-            {isSupplier ? 'Direct management of wholesale supplies and settlements.' : 'Global partner network and supply chain oversight.'}
-          </p>
+    <div className="space-y-6 animate-fade-in pb-20">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+        <div className="flex items-center gap-5">
+           <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-slate-100">
+             <Warehouse size={32} />
+           </div>
+           <div>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{isSupplier ? 'Global Fulfillment' : 'Supplier Registry'}</h2>
+              <p className="text-slate-500 font-medium text-lg">Supply chain logistics & trade nodes.</p>
+           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" className="text-[10px] font-black uppercase tracking-widest"><ShieldCheck size={16}/> Compliance Status</Button>
-          <Button className="text-[10px] font-black uppercase tracking-widest"><Plus size={16}/> {isSupplier ? 'New Request' : 'Onboard Supplier'}</Button>
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
-        {isSupplier ? (
-          <>
-            <button 
-              onClick={() => setActiveTab('MY_DASHBOARD')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'MY_DASHBOARD' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              <LayoutDashboard size={16} /> Dashboard
-            </button>
-            <button 
-              onClick={() => setActiveTab('MY_PRODUCTS')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'MY_PRODUCTS' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              <Boxes size={16} /> Bulk Catalog
-            </button>
-            <button 
-              onClick={() => setActiveTab('FINANCIALS')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'FINANCIALS' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              <CreditCard size={16} /> Settlements
-            </button>
-          </>
-        ) : (
-          <>
-            <button 
-              onClick={() => setActiveTab('DIRECTORY')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'DIRECTORY' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              Supplier Directory
-            </button>
-            <button 
-              onClick={() => setActiveTab('REQUESTS')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'REQUESTS' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              Supply Requests <span className="ml-1 bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full text-[10px]">1</span>
-            </button>
-          </>
+        {isSupplier && (
+          <Button onClick={() => { setEditingShowcaseItem(null); setShowcaseForm({ name: '', description: '', priceRange: '', category: 'General' }); setShowAddShowcase(true); }} className="h-14 px-8 font-black uppercase text-xs shadow-xl shadow-indigo-100">
+            <Plus size={20}/> New Showcase Listing
+          </Button>
         )}
       </div>
 
-      {/* Tab Content Rendering */}
-      {activeTab === 'MY_DASHBOARD' && renderSupplierDashboard()}
-      {activeTab === 'MY_PRODUCTS' && renderProductListing()}
-      {(activeTab === 'FINANCIALS' || activeTab === 'REQUESTS') && (
-        <Card className="py-20 text-center text-slate-400 italic">
-          <History className="mx-auto mb-4 opacity-20" size={48} />
-          <p>This module section is currently syncing with the main financial ledger.</p>
-          <Button variant="ghost" className="mt-4 text-xs font-bold text-indigo-600 uppercase tracking-widest">Reload Data</Button>
+      <div className="flex gap-2 bg-slate-100/50 p-2 rounded-2xl w-fit border border-slate-200/50 shadow-inner">
+        {isSupplier && <button onClick={() => setActiveTab('MY_DASHBOARD')} className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'MY_DASHBOARD' ? 'bg-indigo-600 text-white shadow-xl' : 'text-slate-500 hover:text-slate-800'}`}>My Dashboard</button>}
+        {!isSupplier && <button onClick={() => setActiveTab('DIRECTORY')} className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'DIRECTORY' ? 'bg-indigo-600 text-white shadow-xl' : 'text-slate-500 hover:text-slate-800'}`}>Registry</button>}
+        <button onClick={() => setActiveTab('SHOWCASE')} className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'SHOWCASE' ? 'bg-indigo-600 text-white shadow-xl' : 'text-slate-500 hover:text-slate-800'}`}>Showcase</button>
+      </div>
+
+      {activeTab === 'DIRECTORY' && (
+        <Card className="p-0 overflow-hidden rounded-[32px] shadow-2xl border-slate-100">
+           <div className="p-8 bg-slate-50 border-b border-slate-100">
+              <Input className="flex-1 mb-0 w-full md:w-96" icon={Search} placeholder="Search suppliers..." value={search} onChange={(e:any) => setSearch(e.target.value)} />
+           </div>
+           <div className="overflow-x-auto">
+             <table className="w-full text-left">
+                <thead>
+                  <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/50 border-b border-slate-100">
+                     <th className="px-8 py-5">Partner Node</th>
+                     <th className="px-8 py-5">Fulfillment Center</th>
+                     <th className="px-8 py-5 text-center">Rating</th>
+                     <th className="px-8 py-5 text-right">Audit</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {filteredSuppliers.map(s => (
+                     <tr key={s.id} onClick={() => setSelectedSupplier(s)} className="hover:bg-slate-50/50 group transition-all cursor-pointer">
+                        <td className="px-8 py-6">
+                           <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center font-black group-hover:bg-slate-900 transition-colors shadow-md">{s.name.charAt(0)}</div>
+                              <div>
+                                 <p className="text-sm font-black text-slate-800 tracking-tight">{s.name}</p>
+                                 <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{s.id}</p>
+                              </div>
+                           </div>
+                        </td>
+                        <td className="px-8 py-6 text-xs font-bold text-slate-600">{s.warehouseLocation} Hub</td>
+                        <td className="px-8 py-6 text-center">
+                           <div className="flex items-center justify-center gap-1.5 text-amber-500">
+                              <Star size={14} fill="currentColor" />
+                              <span className="text-sm font-black">{s.rating}</span>
+                           </div>
+                        </td>
+                        <td className="px-8 py-6 text-right">
+                           <Button variant="secondary" className="text-[10px] font-black uppercase h-9 px-4">View Dossier</Button>
+                        </td>
+                     </tr>
+                  ))}
+                </tbody>
+             </table>
+           </div>
         </Card>
       )}
-      {activeTab === 'DIRECTORY' && renderDirectory()}
+
+      {activeTab === 'SHOWCASE' && (
+        <div className="space-y-6 animate-fade-in">
+           <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Public Trade Listings</h3>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {suppliers.flatMap(s => s.showcase || []).map(item => (
+                <Card key={item.id} className="p-8 rounded-[32px] border-l-8 border-l-indigo-600 hover:shadow-2xl transition-all relative">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner"><Package size={24}/></div>
+                    {isSupplier && suppliers.find(s => s.email === user.email)?.showcase?.some(si => si.id === item.id) && (
+                      <div className="flex gap-1">
+                        <button onClick={() => { setEditingShowcaseItem(item); setShowcaseForm({ name: item.name, description: item.description, priceRange: item.priceRange, category: item.category }); setShowAddShowcase(true); }} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400"><Edit size={14}/></button>
+                        <button onClick={() => deleteShowcaseItem(item.id)} className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500"><Trash2 size={14}/></button>
+                      </div>
+                    )}
+                  </div>
+                  <h4 className="text-xl font-black text-slate-900 tracking-tight mb-2">{item.name}</h4>
+                  <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-4">{item.category}</p>
+                  <p className="text-xs text-slate-500 leading-relaxed mb-6 line-clamp-2">{item.description}</p>
+                  <div className="pt-6 border-t border-slate-50 flex justify-between items-center">
+                    <p className="text-xs font-black text-slate-900 uppercase tracking-tight">{item.priceRange}</p>
+                    {!isSupplier && <Button className="h-8 px-4 text-[8px] font-black uppercase">RFQ Sync</Button>}
+                  </div>
+                </Card>
+              ))}
+           </div>
+        </div>
+      )}
+
+      {/* Supplier Detail Modal */}
+      {selectedSupplier && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-fade-in">
+           <Card className="w-full max-w-2xl shadow-2xl border-none rounded-[48px] p-0 relative bg-white overflow-hidden max-h-[90vh] flex flex-col">
+              <div className="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div>
+              <button onClick={() => setSelectedSupplier(null)} className="absolute top-8 right-8 p-3 hover:bg-slate-100 rounded-full transition-all text-slate-400"><X size={32}/></button>
+              
+              <div className="p-12 border-b border-slate-100 shrink-0">
+                 <div className="flex gap-8 items-center mb-8">
+                    <div className="w-24 h-24 bg-slate-900 text-white rounded-[32px] flex items-center justify-center text-4xl font-black shadow-2xl ring-8 ring-indigo-50">{selectedSupplier.name.charAt(0)}</div>
+                    <div>
+                       <h3 className="text-4xl font-black text-slate-900 tracking-tighter leading-tight">{selectedSupplier.name}</h3>
+                       <div className="flex items-center gap-3 mt-2">
+                          <span className="text-[10px] font-black bg-indigo-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">{selectedSupplier.category} Sector</span>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><MapPin size={12}/> {selectedSupplier.warehouseLocation} Center</span>
+                       </div>
+                    </div>
+                 </div>
+                 
+                 <div className="grid grid-cols-3 gap-6">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                       <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Trust Index</p>
+                       <p className="text-2xl font-black text-amber-500 flex items-center justify-center gap-1">{selectedSupplier.rating} <Star size={16} fill="currentColor"/></p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                       <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Supplied</p>
+                       <p className="text-2xl font-black text-slate-900">{selectedSupplier.suppliedItemsCount}</p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                       <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Status</p>
+                       <p className="text-xl font-black text-emerald-600 uppercase">VERIFIED</p>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-12 custom-scrollbar space-y-10">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="space-y-6">
+                       <h4 className="text-[10px] uppercase text-slate-400 font-black tracking-widest flex items-center gap-2"><Mail size={14} className="text-indigo-400"/> Primary Outreach</h4>
+                       <p className="text-sm font-bold text-slate-800">{selectedSupplier.email}</p>
+                    </div>
+                    <div className="space-y-6">
+                       <h4 className="text-[10px] uppercase text-slate-400 font-black tracking-widest flex items-center gap-2"><Truck size={14} className="text-indigo-400"/> Logistics Node</h4>
+                       <p className="text-sm font-bold text-slate-800">{selectedSupplier.warehouseLocation} Industrial Hub</p>
+                    </div>
+                 </div>
+                 
+                 <div>
+                    <h4 className="text-[10px] uppercase text-slate-400 font-black tracking-widest mb-6 flex items-center gap-2"><ShieldCheck size={14} className="text-emerald-500"/> Trade Compliance</h4>
+                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                       <div className="flex gap-3 items-center">
+                          <Award className="text-indigo-600" />
+                          <span className="text-xs font-bold text-slate-700">ISO 9001 Sourcing Certified</span>
+                       </div>
+                       <span className="text-[8px] font-black bg-indigo-600 text-white px-2 py-1 rounded">2024 Valid</span>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="p-10 bg-slate-50 border-t border-slate-100 flex gap-4 shrink-0">
+                 <Button variant="secondary" onClick={() => setSelectedSupplier(null)} className="flex-1 h-14 font-black uppercase text-xs tracking-widest">Dismiss</Button>
+                 {isAdmin && <Button className="flex-[2] h-14 bg-indigo-600 border-none shadow-2xl font-black uppercase text-xs tracking-widest text-white">Create Direct Requisition</Button>}
+              </div>
+           </Card>
+        </div>
+      )}
+
+      {showAddShowcase && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[300] flex items-center justify-center p-4">
+           <Card className="w-full max-w-xl shadow-2xl rounded-[40px] p-12 bg-white relative overflow-hidden border-none">
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-600"></div>
+              <div className="flex justify-between items-center mb-10">
+                 <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{editingShowcaseItem ? 'Edit Showcase Entry' : 'New Showcase Listing'}</h3>
+                 <button onClick={() => setShowAddShowcase(false)} className="text-slate-400 hover:text-slate-600"><X size={28}/></button>
+              </div>
+              <div className="space-y-6">
+                 <Input label="Listing Title *" placeholder="e.g. Bulk Poultry Supply" value={showcaseForm.name} onChange={(e:any)=>setShowcaseForm({...showcaseForm, name: e.target.value})} />
+                 <Input label="Price Range Estimate *" placeholder="UGX 2k - 5k / unit" value={showcaseForm.priceRange} onChange={(e:any)=>setShowcaseForm({...showcaseForm, priceRange: e.target.value})} />
+                 <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Sector Classification</label>
+                    <select 
+                       value={showcaseForm.category}
+                       onChange={(e) => setShowcaseForm({...showcaseForm, category: e.target.value})}
+                       className="w-full bg-black text-white border-2 border-slate-800 rounded-2xl px-5 py-4 text-sm font-bold outline-none shadow-xl appearance-none"
+                    >
+                       <option value="General">General Trade</option>
+                       <option value="Grain">Cereals & Grain</option>
+                       <option value="Dairy">Dairy Products</option>
+                       <option value="Electronics">Bulk Electronics</option>
+                    </select>
+                 </div>
+                 <Input label="Technical Summary *" multiline placeholder="Quality metrics, delivery times, sourcing info..." value={showcaseForm.description} onChange={(e:any)=>setShowcaseForm({...showcaseForm, description: e.target.value})} />
+                 <div className="flex gap-4 pt-4">
+                    <Button variant="secondary" onClick={() => setShowAddShowcase(false)} className="flex-1">Cancel</Button>
+                    <Button onClick={handleSaveShowcase} className="flex-2 bg-indigo-600 border-none shadow-xl text-white">Commit Listing</Button>
+                 </div>
+              </div>
+           </Card>
+        </div>
+      )}
     </div>
   );
 };

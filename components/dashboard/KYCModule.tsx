@@ -63,7 +63,8 @@ export const KYCModule = ({ type, userEmail, onComplete }: KYCProps) => {
 
     if (!validationResult.success) {
       const fieldErrors: Record<string, string> = {};
-      validationResult.error.errors.forEach((err) => {
+      // Fix: Changed .errors to .issues as ZodError uses .issues property
+      validationResult.error.issues.forEach((err) => {
         if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
       });
       setErrors(fieldErrors);

@@ -10,6 +10,9 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { VendorManagement } from './VendorManagement';
 import { SupplierManagement } from './SupplierManagement';
+import { SuppliersNetwork } from './SuppliersNetwork';
+import { SupplyRequisitions } from './SupplyRequisitions';
+import { TicketingSystem } from './TicketingSystem';
 import { MarketRegistry } from './MarketRegistry';
 import { InteractiveMap } from './InteractiveMap';
 import { AuditLogs } from './AuditLogs';
@@ -23,7 +26,6 @@ import { ProfileSettings } from './ProfileSettings';
 import { TransactionHistory } from './TransactionHistory';
 import { Header } from '../ui/Header';
 import { Footer } from '../ui/Footer';
-import { PaymentGateway } from '../payments/PaymentGateway';
 
 interface DashboardLayoutProps {
   user: UserProfile;
@@ -43,6 +45,10 @@ export const DashboardLayout = ({ user, setUser, onLogout }: DashboardLayoutProp
       case 'Vendors':
       case 'My Store':
         return <VendorManagement user={user} />;
+      case 'Suppliers Network':
+        return <SuppliersNetwork user={user} />;
+      case 'Supply Requisitions':
+        return <SupplyRequisitions user={user} />;
       case 'Suppliers':
         return <SupplierManagement user={user} />;
       case 'Markets':
@@ -56,25 +62,12 @@ export const DashboardLayout = ({ user, setUser, onLogout }: DashboardLayoutProp
       case 'Billing & Dues':
       case 'Transactions':
         return <TransactionHistory user={user} />;
+      case 'Tickets & Support':
+        return <TicketingSystem user={user} />;
       case 'Settings':
         return <ProfileSettings user={user} setUser={setUser} />;
       case 'Audit Logs':
         return <AuditLogs />;
-      case 'Become a Vendor':
-        return <KYCModule type="VENDOR" userEmail={user.email} onComplete={() => {
-          setUser({ ...user, kycStatus: 'SUBMITTED', appliedRole: 'VENDOR' });
-          setActiveTab('Home');
-        }} />;
-      case 'Apply as Supplier':
-        return <KYCModule type="SUPPLIER" userEmail={user.email} onComplete={() => {
-          setUser({ ...user, kycStatus: 'SUBMITTED', appliedRole: 'SUPPLIER' });
-          setActiveTab('Home');
-        }} />;
-      case 'Admin Application':
-        return <AdminApplicationForm userEmail={user.email} onComplete={() => {
-          setUser({ ...user, kycStatus: 'SUBMITTED', appliedRole: 'MARKET_ADMIN' });
-          setActiveTab('Home');
-        }} />;
       case 'Support':
         return <ContactForm />;
       case 'QR & Receipts':
@@ -125,7 +118,6 @@ export const DashboardLayout = ({ user, setUser, onLogout }: DashboardLayoutProp
           <Footer />
         </div>
       </div>
-
       <Chatbot />
     </div>
   );

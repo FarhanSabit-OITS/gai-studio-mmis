@@ -18,7 +18,10 @@ import {
   Building2,
   Warehouse,
   Boxes,
-  Map as MapIcon
+  Map as MapIcon,
+  HeartHandshake,
+  LifeBuoy,
+  ShoppingBag
 } from 'lucide-react';
 import { Role, UserProfile } from '../../types';
 import { ROLES_HIERARCHY } from '../../constants';
@@ -46,12 +49,14 @@ export const Sidebar = ({ user, activeTab, setActiveTab, isOpen, setIsOpen, onLo
     { name: 'Markets', icon: Building2, roles: ['SUPER_ADMIN', 'MARKET_ADMIN'] as Role[] },
     { name: 'Map View', icon: MapIcon, roles: ['SUPER_ADMIN', 'MARKET_ADMIN', 'VENDOR', 'SUPPLIER'] as Role[] },
     { name: user.role === 'VENDOR' ? 'My Store' : 'Vendors', icon: Store, roles: ['SUPER_ADMIN', 'MARKET_ADMIN', 'VENDOR'] as Role[] },
-    { name: 'Suppliers', icon: Warehouse, roles: ['SUPER_ADMIN', 'MARKET_ADMIN', 'SUPPLIER'] as Role[] },
+    { name: 'Suppliers Network', icon: HeartHandshake, roles: ['SUPER_ADMIN', 'MARKET_ADMIN', 'VENDOR', 'SUPPLIER', 'USER'] as Role[] },
+    { name: 'Supply Requisitions', icon: ShoppingBag, roles: ['SUPER_ADMIN', 'MARKET_ADMIN', 'VENDOR', 'SUPPLIER'] as Role[] },
     { name: 'Inventory Control', icon: Box, roles: ['SUPER_ADMIN', 'MARKET_ADMIN', 'VENDOR', 'SUPPLIER'] as Role[] },
     { name: 'Billing & Dues', icon: CreditCard, roles: ['VENDOR', 'SUPPLIER'] as Role[] },
     { name: 'Gate Management', icon: Truck, roles: ['SUPER_ADMIN', 'MARKET_ADMIN', 'COUNTER_STAFF'] as Role[] },
     { name: 'Stock Counter', icon: Boxes, roles: ['SUPER_ADMIN', 'MARKET_ADMIN', 'COUNTER_STAFF'] as Role[] },
     { name: 'QR & Receipts', icon: Ticket, roles: ['COUNTER_STAFF', 'VENDOR'] as Role[] },
+    { name: 'Tickets & Support', icon: LifeBuoy },
     { name: 'Audit Logs', icon: History, roles: ['SUPER_ADMIN', 'MARKET_ADMIN'] as Role[] },
     { name: 'KYC Verification', icon: ShieldCheck, roles: ['SUPER_ADMIN', 'MARKET_ADMIN'] as Role[] },
     { name: 'Support', icon: MessageSquare },
@@ -82,21 +87,6 @@ export const Sidebar = ({ user, activeTab, setActiveTab, isOpen, setIsOpen, onLo
             {isOpen && <span className="font-medium">{item.name}</span>}
           </button>
         ))}
-        
-        {user.kycStatus === 'NONE' && (
-          <div className="mt-4 pt-4 border-t border-slate-50 space-y-1">
-            <p className={`text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-3 ${!isOpen && 'hidden'}`}>Applications</p>
-            <button onClick={() => setActiveTab('Become a Vendor')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-indigo-600 hover:bg-indigo-50 transition-all ${activeTab === 'Become a Vendor' && 'bg-indigo-50'}`}>
-              <Store size={16}/> {isOpen && 'Vendor Access'}
-            </button>
-            <button onClick={() => setActiveTab('Apply as Supplier')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all ${activeTab === 'Apply as Supplier' && 'bg-slate-100'}`}>
-              <Package size={16}/> {isOpen && 'Supplier Access'}
-            </button>
-            <button onClick={() => setActiveTab('Admin Application')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all ${activeTab === 'Admin Application' && 'bg-slate-100'}`}>
-              <UserPlus size={16}/> {isOpen && 'Market Admin Request'}
-            </button>
-          </div>
-        )}
       </nav>
 
       <div className="p-4 border-t border-slate-100">
